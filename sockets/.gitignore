@@ -1,5 +1,6 @@
 @'
-**/target/
+**/target/*
+!**/target/*.jar
 *.log
 Projeto1_Fanorona.zip
 .vscode/
