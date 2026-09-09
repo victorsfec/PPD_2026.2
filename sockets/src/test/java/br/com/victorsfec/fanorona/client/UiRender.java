@@ -16,12 +16,14 @@ public final class UiRender {
             FanoronaClient client = new FanoronaClient();
             GameFrame frame = new GameFrame(client);
             try {
-                frame.receive("WELCOME|1|" + Protocol.text("Jogador 1") + "|" + Protocol.text("Jogador 2"));
+                int viewer = args.length > 4 ? Integer.parseInt(args[4]) : 1;
+                frame.receive("WELCOME|" + viewer + "|" + Protocol.text("Jogador 1") + "|" + Protocol.text("Jogador 2"));
                 Board board = new Board();
-                frame.receive("STATE|0|1|-1|" + board.encode() + "|" + board.legalMoves().stream().map(Board.Move::wire).collect(Collectors.joining(";")));
+                if (args.length > 5) board = new Board(board.encode().chars().map(c -> c - '0').toArray(), Integer.parseInt(args[5]));
+                frame.receive("STATE|0|" + board.turn() + "|-1|" + board.encode() + "|" + board.legalMoves().stream().map(Board.Move::wire).collect(Collectors.joining(";")));
                 frame.receive("CHAT|2|" + Protocol.text("Olá! Vamos começar a partida."));
                 // Argumento opcional: ID do solicitante para revisar os controles de consentimento.
-                if (args.length > 1) frame.receive("RESTART_OFFER|1|" + args[1]);
+                if (args.length > 1 && !args[1].equals("0")) frame.receive("RESTART_OFFER|1|" + args[1]);
                 // Largura e altura opcionais permitem conferir o tabuleiro em telas maiores.
                 if (args.length > 3) frame.setSize(Integer.parseInt(args[2]), Integer.parseInt(args[3]));
                 frame.addNotify(); frame.validate();

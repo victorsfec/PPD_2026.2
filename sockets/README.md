@@ -73,7 +73,7 @@ Se a conexão não funcionar, confira se os computadores conseguem se comunicar 
 
 O tabuleiro tem 5 linhas e 9 colunas. Cada jogador começa com 22 peças, e o ponto central fica vazio.
 
-Clique em uma peça sua para ver os destinos disponíveis em verde. Depois, clique no destino. A peça se move para um ponto vizinho vazio pelas linhas do tabuleiro; as diagonais só valem onde há uma linha desenhada.
+Na sua vez, as peças que podem jogar aparecem com uma sombra verde. Clique em uma delas para selecionar (contorno azul) e ver os destinos disponíveis em verde. Depois, clique no destino. A peça se move para um ponto vizinho vazio pelas linhas do tabuleiro; as diagonais só valem onde há uma linha desenhada.
 
 Existem duas formas de capturar:
 

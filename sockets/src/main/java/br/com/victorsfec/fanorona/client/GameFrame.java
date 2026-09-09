@@ -46,7 +46,7 @@ final class GameFrame extends JFrame {
         JPanel composer = new JPanel(new BorderLayout(4, 4)); composer.add(message); composer.add(send, BorderLayout.EAST);
         side.add(composer, BorderLayout.SOUTH); main.add(side, BorderLayout.EAST);
         JPanel footer = new JPanel(new BorderLayout());
-        footer.add(new JLabel("Selecione sua peça e um destino verde. P1: branca • P2: preta."), BorderLayout.NORTH);
+        footer.add(new JLabel("Sombra verde: peça que pode jogar. Azul: seleção. Pontos verdes: destinos. P1: branca • P2: preta."), BorderLayout.NORTH);
         JPanel actions = new JPanel(new FlowLayout(FlowLayout.LEFT));
         actions.add(end); actions.add(draw); actions.add(forfeit); actions.add(restart); actions.add(declineRestart);
         JButton help = new JButton("Regras"); actions.add(help); footer.add(actions, BorderLayout.SOUTH); main.add(footer, BorderLayout.SOUTH);
@@ -144,12 +144,21 @@ final class GameFrame extends JFrame {
         restart.setEnabled(paired && !pending && restartRequester != id);
         declineRestart.setVisible(paired && restartRequester != 0 && restartRequester != id);
         declineRestart.setEnabled(!pending);
+        boardPanel.repaint();
         end.setEnabled(!ended && !pending && id == turn && chain >= 0);
         forfeit.setEnabled(!ended && id > 0); draw.setEnabled(!ended && id > 0);
     }
+    // Usa as origens permitidas pelo servidor, incluindo captura obrigatória e sequência.
+    private boolean canSelectPiece(int cell) {
+        return !ended && !pending && paired && id > 0 && turn == id
+            && cells.charAt(cell) - '0' == id && legal.stream().anyMatch(move -> move.from() == cell);
+    }
     private void click(int cell) {
         if (ended || pending || turn != id || id == 0) return;
-        if (cells.charAt(cell) - '0' == id) { selected = cell; boardPanel.repaint(); return; }
+        if (cells.charAt(cell) - '0' == id) {
+            if (canSelectPiece(cell)) { selected = cell; boardPanel.repaint(); }
+            return;
+        }
         // As opções de destino vêm da lista de movimentos enviada pelo servidor.
         List<Board.Move> options = legal.stream().filter(m -> m.from() == selected && m.to() == cell).toList();
         if (options.isEmpty()) return;
@@ -190,15 +199,23 @@ final class GameFrame extends JFrame {
             for (int a = 0; a < 45; a++) {
                 int x = left + a % 9 * step, y = top + a / 9 * step;
                 g.setColor(new Color(100, 80, 55)); g.fillOval(x - 3, y - 3, 6, 6);
+                // A sombra aparece antes do clique, apenas nas peças que podem agir agora.
+                if (canSelectPiece(a)) {
+                    g.setColor(new Color(22, 125, 76, 65));
+                    g.fillOval(x - radius - 9, y - radius - 9, radius * 2 + 18, radius * 2 + 18);
+                    g.setColor(new Color(22, 125, 76, 135));
+                    g.fillOval(x - radius - 5, y - radius - 5, radius * 2 + 10, radius * 2 + 10);
+                }
                 if (cells.charAt(a) != '0') {
+                    g.setStroke(new BasicStroke(1.5f));
                     g.setColor(cells.charAt(a) == '1' ? Color.WHITE : new Color(36, 42, 49));
                     g.fillOval(x - radius, y - radius, radius * 2, radius * 2);
                     g.setColor(Color.DARK_GRAY); g.drawOval(x - radius, y - radius, radius * 2, radius * 2);
                     g.setColor(cells.charAt(a) == '1' ? Color.BLACK : Color.WHITE); g.drawString(cells.substring(a, a + 1), x - 4, y + 5);
                 }
-                if (a == selected && turn == id && !ended) { g.setColor(new Color(20, 110, 205)); g.setStroke(new BasicStroke(3)); g.drawOval(x - radius - 4, y - radius - 4, radius * 2 + 8, radius * 2 + 8); }
+                if (a == selected && canSelectPiece(a)) { g.setColor(new Color(20, 110, 205)); g.setStroke(new BasicStroke(3)); g.drawOval(x - radius - 4, y - radius - 4, radius * 2 + 8, radius * 2 + 8); }
                 final int destination = a;
-                if (!ended && turn == id && legal.stream().anyMatch(m -> m.from() == selected && m.to() == destination)) {
+                if (!ended && !pending && paired && turn == id && legal.stream().anyMatch(m -> m.from() == selected && m.to() == destination)) {
                     g.setColor(new Color(22, 125, 76)); g.fillOval(x - 9, y - 9, 18, 18);
                 }
             }
