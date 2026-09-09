@@ -1,0 +1,16 @@
+{
+    "java.jdt.ls.java.home": "C:\\Program Files\\Java\\jdk-25.0.4.1",
+    "java.configuration.runtimes": [
+        {
+            "name": "JavaSE-25",
+            "path": "C:\\Program Files\\Java\\jdk-25.0.4.1",
+            "default": true
+        }
+    ],
+    "terminal.integrated.env.windows": {
+        "JAVA_HOME": "C:\\Program Files\\Java\\jdk-25.0.4.1",
+        "PATH": "C:\\Program Files\\Java\\jdk-25.0.4.1\\bin;${env:PATH}"
+    },
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx4G -Xms100m -Xlog:disable"
+}
