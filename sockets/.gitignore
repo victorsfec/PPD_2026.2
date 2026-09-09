@@ -1,8 +1,0 @@
-@'
-**/target/*
-!**/target/*.jar
-*.log
-Projeto1_Fanorona.zip
-.vscode/
-.github/modernize/
-'@ | Set-Content -Encoding utf8 .gitignore

@@ -1,3 +1,14 @@
-/sockets/docs/
+# Arquivos gerados: publicar apenas os executáveis do cliente e do servidor.
+**/target/*
+!/sockets/target/sockets-1.0-client.jar
+!/sockets/target/sockets-1.0-server.jar
+
+# Documentação publicada.
 /sockets/docs/*
 !/sockets/docs/PROTOCOLO.md
+
+# Arquivos locais e pacote antigo da entrega.
+*.log
+/Projeto1_Fanorona.zip
+/.vscode/
+/.github/modernize/
