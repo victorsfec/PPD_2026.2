@@ -32,12 +32,6 @@ java -jar target/rmi-1.0-server.jar 12345 --console
 
 O registro RMI é criado pelo servidor: não execute `rmiregistry` separadamente. Parar o servidor despublica o serviço e encerra o registro; os clientes detectam a falha na próxima consulta.
 
-### Aviso de arquivo fora do projeto no VS Code
-
-Se aparecer `is a non-project file, only syntax errors are reported`, a extensão Java ainda não associou o arquivo ao projeto Maven. Com a pasta `PPD - 2026.2` aberta, pressione `Ctrl+Shift+P` e execute **Java: Import Java projects in workspace**. Aguarde o projeto `rmi` aparecer na seção **JAVA PROJECTS** antes de executar `FanoronaClientRMI.java` ou `FanoronaServerRMI.java`.
-
-Se o aviso persistir, execute **Java: Clean Java Language Server Workspace** e confirme a reinicialização quando solicitada pelo VS Code. Essa operação reconstrói o índice Java. Como alternativa, abra diretamente a pasta `rmi` por **File → Open Folder**, contendo o `pom.xml`, e aguarde a importação.
-
 ## Computadores diferentes
 
 Consulte o IPv4 do servidor com `ipconfig`. Antes de iniciar o servidor, informe esse endereço na propriedade RMI (substitua o exemplo pelo IP real):
