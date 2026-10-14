@@ -77,6 +77,30 @@ O cliente consulta eventos a cada 200 ms e serializa chamadas em um executor for
 
 Cada caixa comporta 256 eventos. Se ficar cheia, o servidor remove o cliente. Sem chamadas por 15 segundos, a sessão expira; a verificação roda a cada segundo. Fechar normalmente chama `disconnect`; encerramento abrupto é detectado por expiração. O polling evita conexões reversas e permite acompanhar o chat mesmo fora do turno.
 
+## Diferenças entre RMI e sockets
+
+As duas versões mantêm as regras do Fanorona, a interface Swing, o chat, as estatísticas, a demonstração `/final` e o reinício por consentimento. A principal mudança está na comunicação entre cliente e servidor.
+
+| Aspecto | Implementação com sockets | Implementação com RMI |
+|---|---|---|
+| Transporte | A aplicação abre `ServerSocket` e `Socket` e lê/escreve nos streams TCP. | A infraestrutura Java RMI transporta chamadas e resultados; a aplicação usa uma referência remota (stub). RMI também usa TCP internamente. |
+| Contrato | Comandos textuais, como `MOVE\|revisao\|origem\|destino\|modo`, definidos em `Protocol`. | Interface `FanoronaServiceRMI`, que estende `Remote` e declara métodos como `move(token, revision, from, to, mode)` com `RemoteException`. |
+| Localização do serviço | O cliente conecta diretamente ao IP e à porta do servidor. | O servidor cria o registro e publica o serviço como `Fanorona`; o cliente faz `lookup` para obter o stub. |
+| Identificação | O cliente envia `HELLO` com o nome; a identidade fica associada ao socket e ao `ClientHandler`. | `connect(name)` retorna um token UUID, usado nas chamadas seguintes para localizar o jogador e sua sessão. |
+| Formato dos dados | Linhas UTF-8 terminadas em LF, com campos separados por `\|` e textos em Base64; limite de 8192 caracteres por linha. | Argumentos tipados e resultados serializados pelo RMI. Os eventos continuam como strings com `\|` e Base64 dentro de `List<String>`; não há leitura de linhas TCP na aplicação. |
+| Recebimento de eventos | O servidor escreve os eventos no socket; uma thread do cliente permanece lendo as mensagens. | O cliente chama `poll(token)` para retirar os eventos pendentes, com atraso fixo de 200 ms após cada consulta. Não há callbacks remotos. |
+| Concorrência no servidor | Cada `ClientHandler` possui uma thread de leitura e outra de escrita. | O runtime RMI despacha as chamadas; `ClientHandlerRMI` guarda a identidade e a caixa de eventos, sem threads próprias de transporte. |
+| Concorrência no cliente | Um executor envia comandos e uma thread separada recebe eventos. | Um único executor agendado faz as ações e o polling; uma chamada demorada pode atrasar ambos. Nas duas versões, a interface é atualizada na EDT. |
+| Filas de eventos | Fila de 256 mensagens por cliente, consumida pela thread de escrita; fila cheia fecha o socket. | Caixa de 256 eventos por cliente, esvaziada por `poll`; caixa cheia agenda a remoção do jogador. |
+| Detecção de saída | Fechamento, fim do stream ou erro de comunicação. Há timeout de 15 s para `HELLO`, retirado após a identificação. | `disconnect(token)` na saída normal; ausência de chamadas por mais de 15 s leva à expiração, verificada a cada segundo. |
+| Encerramento do servidor | Fecha o `ServerSocket` e os sockets dos jogadores. | Remove o nome do registro, desexporta o serviço e o registro e encerra a manutenção. |
+| Uso entre máquinas | Exige IP acessível e porta TCP liberada no servidor. | Além do IP e da porta liberada, o stub deve anunciar um endereço acessível, configurável por `java.rmi.server.hostname`. Neste projeto, registro e serviço compartilham a porta. |
+| Testes de comunicação | Exercitam comandos e eventos pela conexão TCP. | Exercitam o contrato remoto por lookup e chamadas reais ao stub, incluindo tokens inválidos, expiração e reabertura do registro. |
+
+Na versão RMI, `FanoronaClientRMI.invoke` converte os comandos locais da interface em métodos remotos. O servidor converte essas chamadas em comandos internos para a sessão, preservando o formato dos eventos e a lógica do jogo. O tabuleiro continua sendo um objeto local no servidor, sem exportação remota.
+
+Em ambas as versões, o servidor valida turno, revisão e regras e publica o estado autoritativo. No RMI, o retorno normal de `move` não confirma que a jogada foi aceita: a confirmação ou rejeição chega por `STATE` ou `ERROR` em uma consulta posterior. O formato completo está em [docs/PROTOCOLO.md](docs/PROTOCOLO.md); o protocolo da versão sockets está em [../sockets/docs/PROTOCOLO.md](../sockets/docs/PROTOCOLO.md).
+
 ## Validação e limites
 
 `AppTestRMI` verifica regras de captura, sequências, turnos, conservação de peças, pareamento via stub RMI, sincronização de jogadas, revisão antiga, chat, isolamento de partidas, tokens inválidos, desistência, empate, desconexão normal e por expiração, demonstração, reinícios aceitos/recusados e reabertura do registro. Os testes usam a porta local `23456`, que deve estar livre. A simulação de encerramento abrupto aguarda cerca de 16 segundos.
