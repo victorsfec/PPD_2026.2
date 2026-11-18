@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>br.com.victorsfec.mom</groupId><artifactId>mom</artifactId><version>1.0</version>
+  <name>Contagem paralela com MOM</name>
+  <properties><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><maven.compiler.release>25</maven.compiler.release></properties>
+  <dependencies>
+    <dependency><groupId>org.apache.activemq</groupId><artifactId>activemq-all</artifactId><version>6.1.6</version></dependency>
+    <dependency><groupId>org.apache.logging.log4j</groupId><artifactId>log4j-api</artifactId><version>2.24.3</version></dependency>
+    <dependency><groupId>org.apache.logging.log4j</groupId><artifactId>log4j-core</artifactId><version>2.24.3</version></dependency>
+  </dependencies>
+  <build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+    <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.3.0</version>
+      <executions><execution><id>testes-jms</id><phase>test</phase><goals><goal>java</goal></goals><configuration><mainClass>br.com.victorsfec.mom.AppTestMOM</mainClass><classpathScope>test</classpathScope></configuration></execution></executions>
+    </plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-dependency-plugin</artifactId><version>3.8.1</version>
+      <executions><execution><id>bibliotecas</id><phase>prepare-package</phase><goals><goal>copy-dependencies</goal></goals><configuration><outputDirectory>${project.basedir}/lib</outputDirectory><includeScope>runtime</includeScope></configuration></execution></executions>
+    </plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId><version>3.4.2</version>
+      <configuration><archive><manifest><addClasspath>true</addClasspath><classpathPrefix>../lib/</classpathPrefix></manifest></archive></configuration>
+      <executions>
+        <execution><id>client</id><phase>package</phase><goals><goal>jar</goal></goals><configuration><classifier>client</classifier><archive><manifest><mainClass>br.com.victorsfec.mom.client.MomClient</mainClass></manifest></archive></configuration></execution>
+        <execution><id>broker</id><phase>package</phase><goals><goal>jar</goal></goals><configuration><classifier>broker</classifier><archive><manifest><mainClass>br.com.victorsfec.mom.broker.MomBroker</mainClass></manifest></archive></configuration></execution>
+        <execution><id>worker</id><phase>package</phase><goals><goal>jar</goal></goals><configuration><classifier>worker</classifier><archive><manifest><mainClass>br.com.victorsfec.mom.worker.WordWorkerMOM</mainClass></manifest></archive></configuration></execution>
+        <execution><id>dashboard</id><phase>package</phase><goals><goal>jar</goal></goals><configuration><classifier>dashboard</classifier><archive><manifest><mainClass>br.com.victorsfec.mom.dashboard.DashboardFrameMOM</mainClass></manifest></archive></configuration></execution>
+      </executions>
+    </plugin>
+  </plugins></build>
+</project>
